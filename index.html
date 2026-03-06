@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estadísticas Sede Electrónica · 2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white:  #ffffff;
+    --bg:     #f4f6f9;
+    --bg2:    #edf0f5;
+    --border: #dce1eb;
+    --text:   #1b1f2e;
+    --muted:  #7b84a0;
+    --blue:   #1a5fb4;
+    --blue-lt:#ddeaf8;
+    --teal:   #17866b;
+    --teal-lt:#d0f0e8;
+    --amber:  #b45309;
+    --amber-lt:#fef3c7;
+    --rose:   #9d2a4a;
+    --rose-lt:#fde8ef;
+    --shadow: 0 1px 3px rgba(26,30,46,0.07), 0 4px 16px rgba(26,30,46,0.05);
+    --shadow-h:0 2px 8px rgba(26,30,46,0.10), 0 8px 28px rgba(26,30,46,0.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 200;
+    gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .brand-icon {
+    width: 32px; height: 32px; background: var(--blue);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  }
+  .brand-icon svg { width: 16px; height: 16px; fill: white; }
+  .brand-name { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500; }
+  .brand-sub  { font-size: 11px; color: var(--muted); }
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .topbar-tag {
+    font-size: 11px; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 9px; white-space: nowrap;
+  }
+
+  /* LAYOUT */
+  .page { max-width: 1180px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  /* PAGE HEADER */
+  .page-hd {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px; margin-bottom: 28px;
+  }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(22px, 3vw, 34px);
+    font-weight: 700; letter-spacing: -0.4px; line-height: 1.1;
+  }
+  .page-title small {
+    display: block; font-size: 11px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400; color: var(--muted);
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px;
+  }
+
+  /* KPI ROW */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 20px;
+  }
+  @media (max-width: 780px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 440px) { .kpi-row { grid-template-columns: 1fr; } }
+
+  .kpi {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    border-top: 3px solid transparent;
+  }
+  .kpi:hover { box-shadow: var(--shadow-h); transform: translateY(-2px); }
+  .kpi.k-blue  { border-top-color: var(--blue); }
+  .kpi.k-teal  { border-top-color: var(--teal); }
+  .kpi.k-amber { border-top-color: var(--amber); }
+  .kpi.k-rose  { border-top-color: var(--rose); }
+
+  .kpi-name { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-num  {
+    font-family: 'Fraunces', serif;
+    font-size: 32px; font-weight: 700;
+    letter-spacing: -0.8px; line-height: 1; margin-bottom: 4px;
+  }
+  .kpi.k-blue  .kpi-num { color: var(--blue); }
+  .kpi.k-teal  .kpi-num { color: var(--teal); }
+  .kpi.k-amber .kpi-num { color: var(--amber); }
+  .kpi.k-rose  .kpi-num { color: var(--rose); }
+  .kpi-sub { font-size: 11px; color: var(--muted); }
+
+  /* SECTION LABEL */
+  .sec { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; }
+  .sec-pill {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.1px;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 20px; white-space: nowrap;
+  }
+  .sp-blue  { background: var(--blue-lt);  color: var(--blue); }
+  .sp-teal  { background: var(--teal-lt);  color: var(--teal); }
+  .sp-amber { background: var(--amber-lt); color: var(--amber); }
+  .sp-neu   { background: var(--bg2);      color: var(--muted); }
+  .sec-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* CARD */
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 22px;
+    box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .card-hd {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+  }
+  .card-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; letter-spacing: -0.2px; }
+  .card-desc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.sm { height: 200px; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* SEARCH + FILTER BAR */
+  .toolbar {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .search-box {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px; padding: 7px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--white); color: var(--text);
+    outline: none; flex: 1; min-width: 180px; max-width: 320px;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--blue); }
+  .sort-sel {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px; padding: 7px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--white); color: var(--text); cursor: pointer;
+    outline: none;
+  }
+  .show-all-btn {
+    font-size: 12px; font-weight: 600;
+    padding: 7px 14px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    transition: all 0.14s;
+    white-space: nowrap;
+  }
+  .show-all-btn:hover { background: var(--bg); color: var(--text); }
+  .show-all-btn.active { background: var(--blue-lt); color: var(--blue); border-color: transparent; }
+
+  /* PROCEDURE TABLE */
+  .tcard { background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .tcard-hd { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
+  .tcard-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500; }
+  .tcard-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .tscroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 8px 14px; text-align: left;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.9px;
+    text-transform: uppercase; color: var(--muted);
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--bg2); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafbfd; }
+  tbody td { padding: 9px 14px; font-size: 12px; }
+  .td-rank { color: var(--muted); font-size: 11px; font-weight: 600; width: 28px; }
+  .td-proc { font-weight: 500; max-width: 260px; }
+  .td-bar-cell { width: 130px; }
+  .td-bar-wrap { background: var(--bg2); border-radius: 4px; height: 6px; overflow: hidden; }
+  .td-bar      { height: 6px; border-radius: 4px; background: var(--blue); transition: width 0.4s; }
+  .td-num { text-align: right; font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500; color: var(--blue); white-space: nowrap; }
+  .td-pct { text-align: right; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .month-cell { text-align: right; font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* MONTH SELECTOR for procedure detail */
+  .month-tabs {
+    display: flex; gap: 3px; flex-wrap: wrap;
+  }
+  .m-tab {
+    font-size: 11px; font-weight: 600;
+    padding: 5px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.14s;
+  }
+  .m-tab:hover { background: var(--bg); color: var(--text); }
+  .m-tab.active { background: var(--blue); color: white; border-color: transparent; }
+  .m-tab.all.active { background: var(--blue); }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 40px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+  }
+
+  /* ANIM */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .kpi  { animation: fadeUp 0.3s ease both; }
+  .kpi:nth-child(1) { animation-delay: 0.04s; }
+  .kpi:nth-child(2) { animation-delay: 0.08s; }
+  .kpi:nth-child(3) { animation-delay: 0.12s; }
+  .kpi:nth-child(4) { animation-delay: 0.16s; }
+  .card { animation: fadeUp 0.3s 0.12s ease both; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Sede Electrónica · TIWorks</div>
+      <div class="brand-sub">Estadísticas de uso · enero–agosto 2025</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="month-tabs" id="globalMonthTabs">
+      <button class="m-tab all active" data-m="all">Todos</button>
+      <button class="m-tab" data-m="2025-01">Ene</button>
+      <button class="m-tab" data-m="2025-02">Feb</button>
+      <button class="m-tab" data-m="2025-03">Mar</button>
+      <button class="m-tab" data-m="2025-04">Abr</button>
+      <button class="m-tab" data-m="2025-05">May</button>
+      <button class="m-tab" data-m="2025-06">Jun</button>
+      <button class="m-tab" data-m="2025-07">Jul</button>
+      <button class="m-tab" data-m="2025-08">Ago</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-hd">
+    <div class="page-title">
+      <small>Expedientes tramitados</small>
+      Uso de procedimientos digitales
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- TOTAL MENSUAL -->
+  <div class="sec"><div class="sec-pill sp-blue">Actividad mensual</div><div class="sec-line"></div></div>
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Total de expedientes por mes</div>
+        <div class="card-desc" id="mainChartDesc">Enero – Agosto 2025 · todos los procedimientos</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <!-- TOP 10 + RANKING -->
+  <div class="sec"><div class="sec-pill sp-teal">Procedimientos</div><div class="sec-line"></div></div>
+
+  <div class="two-col">
+    <!-- Top 10 barras -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-hd">
+        <div>
+          <div class="card-title">Top 10 procedimientos</div>
+          <div class="card-desc" id="top10Desc">Por volumen total de expedientes</div>
+        </div>
+      </div>
+      <div class="chart-wrap sm"><canvas id="top10Chart"></canvas></div>
+    </div>
+    <!-- Distribución acumulada -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-hd">
+        <div>
+          <div class="card-title">Distribución acumulada</div>
+          <div class="card-desc">Peso relativo de cada procedimiento</div>
+        </div>
+      </div>
+      <div class="chart-wrap sm"><canvas id="distChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLA COMPLETA -->
+  <div class="sec" style="margin-top:26px"><div class="sec-pill sp-amber">Tabla de procedimientos</div><div class="sec-line"></div></div>
+
+  <div class="toolbar">
+    <input class="search-box" type="text" id="searchBox" placeholder="Buscar procedimiento…">
+    <select class="sort-sel" id="sortSel">
+      <option value="total">Ordenar: mayor total</option>
+      <option value="alpha">Ordenar: A → Z</option>
+      <option value="month">Ordenar: mes seleccionado</option>
+    </select>
+    <button class="show-all-btn" id="showAllBtn">Mostrar todos (65)</button>
+  </div>
+
+  <div class="tcard">
+    <div class="tcard-hd">
+      <div class="tcard-title">Todos los procedimientos · <span id="tblPeriod">Ene–Ago 2025</span></div>
+      <div class="tcard-desc" id="tblCount">65 procedimientos · 157.450 expedientes totales</div>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Procedimiento</th>
+            <th class="num">Ene</th>
+            <th class="num">Feb</th>
+            <th class="num">Mar</th>
+            <th class="num">Abr</th>
+            <th class="num">May</th>
+            <th class="num">Jun</th>
+            <th class="num">Jul</th>
+            <th class="num">Ago</th>
+            <th class="num">Total</th>
+            <th>Tendencia</th>
+            <th class="num">% total</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Sede Electrónica · TIWorks · Estadísticas de uso 2025</span>
+    <span>Fuente: del_1_de_enero_a_octubre_de_2025.xlsx · Datos: enero–agosto 2025</span>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ════════════════════════════════════════════════════
+//  DATOS REALES (generados automáticamente)
+// ════════════════════════════════════════════════════
+const MESES  = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08'];
+const MESES_C= ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago'];
+
+const MONTHLY = {"2025-01":15234,"2025-02":15254,"2025-03":15122,"2025-04":21431,"2025-05":28193,"2025-06":26090,"2025-07":30044,"2025-08":6082};
+
+const ALL_DATA = {"SelladoCertificadosAtlas":{"2025-01":2494,"2025-02":1182,"2025-03":4519,"2025-04":4988,"2025-05":3337,"2025-06":3017,"2025-07":1589,"2025-08":413,"total":21539},"otrosCertificados":{"2025-01":1153,"2025-02":1486,"2025-03":929,"2025-04":1751,"2025-05":7477,"2025-06":3528,"2025-07":3350,"2025-08":24,"total":19698},"001 Instancia General":{"2025-01":2008,"2025-02":1837,"2025-03":1878,"2025-04":2221,"2025-05":2893,"2025-06":2927,"2025-07":4813,"2025-08":474,"total":19051},"Certificado Sustitutorio":{"2025-01":664,"2025-02":1017,"2025-03":835,"2025-04":485,"2025-05":499,"2025-06":1861,"2025-07":4033,"2025-08":1032,"total":10426},"CERTIFICADO ACADÉMICO":{"2025-01":602,"2025-02":1168,"2025-03":978,"2025-04":882,"2025-05":984,"2025-06":2052,"2025-07":2699,"2025-08":862,"total":10227},"Proceso Selectivo Ayudante Doctor":{"2025-01":157,"2025-02":120,"2025-03":338,"2025-04":2399,"2025-05":2843,"2025-06":1362,"2025-07":144,"2025-08":37,"total":7400},"003 Proceso Selectivo de Profesor Asociado":{"2025-01":88,"2025-02":99,"2025-03":122,"2025-04":2804,"2025-05":2916,"2025-06":755,"2025-07":372,"2025-08":26,"total":7182},"020 ETitulo":{"2025-01":658,"2025-02":673,"2025-03":577,"2025-04":503,"2025-05":677,"2025-06":907,"2025-07":1011,"2025-08":447,"total":5453},"Subproceso Notificacion":{"2025-01":252,"2025-02":277,"2025-03":290,"2025-04":131,"2025-05":919,"2025-06":1579,"2025-07":1200,"2025-08":354,"total":5002},"Servicio Notificacion":{"2025-01":207,"2025-02":218,"2025-03":233,"2025-04":103,"2025-05":621,"2025-06":1243,"2025-07":1077,"2025-08":297,"total":3999},"Subproceso Pago REDSYS":{"2025-01":281,"2025-02":392,"2025-03":382,"2025-04":246,"2025-05":318,"2025-06":492,"2025-07":1232,"2025-08":349,"total":3692},"Comunicacion Entre Unidades":{"2025-01":433,"2025-02":391,"2025-03":470,"2025-04":321,"2025-05":252,"2025-06":633,"2025-07":924,"2025-08":128,"total":3552},"CERTIFICADO ACADÉMICO MÁSTER":{"2025-01":291,"2025-02":364,"2025-03":327,"2025-04":302,"2025-05":252,"2025-06":380,"2025-07":788,"2025-08":272,"total":2976},"Notificaciones":{"2025-01":279,"2025-02":287,"2025-03":235,"2025-04":338,"2025-05":385,"2025-06":622,"2025-07":608,"2025-08":151,"total":2905},"idComunicacionAUnidad":{"2025-01":372,"2025-02":285,"2025-03":360,"2025-04":246,"2025-05":164,"2025-06":512,"2025-07":757,"2025-08":59,"total":2755},"Anulacion Matricula":{"2025-01":78,"2025-02":49,"2025-03":33,"2025-04":29,"2025-05":28,"2025-06":343,"2025-07":1644,"2025-08":435,"total":2639},"009. Inscripción en procesos selectivos de personal laboral":{"2025-01":1254,"2025-02":778,"2025-03":1,"2025-04":130,"2025-05":64,"2025-06":70,"2025-07":0,"2025-08":0,"total":2297},"Solicitud Autorizacion Personal Docente UCM":{"2025-01":379,"2025-02":233,"2025-03":385,"2025-04":231,"2025-05":361,"2025-06":270,"2025-07":162,"2025-08":17,"total":2038},"Emision de Comunicaciones":{"2025-01":237,"2025-02":280,"2025-03":214,"2025-04":210,"2025-05":248,"2025-06":425,"2025-07":316,"2025-08":67,"total":1997},"Bolsas de empleo de Profesor Sustituto":{"2025-01":85,"2025-02":366,"2025-03":256,"2025-04":131,"2025-05":384,"2025-06":440,"2025-07":283,"2025-08":18,"total":1963},"Emision Certificados Por Lotes":{"2025-01":167,"2025-02":172,"2025-03":171,"2025-04":169,"2025-05":265,"2025-06":324,"2025-07":390,"2025-08":18,"total":1676},"Solicitud Certificado AP":{"2025-01":330,"2025-02":288,"2025-03":217,"2025-04":171,"2025-05":228,"2025-06":175,"2025-07":134,"2025-08":33,"total":1576},"Pedidos Catalogo Informatica":{"2025-01":110,"2025-02":216,"2025-03":230,"2025-04":237,"2025-05":285,"2025-06":263,"2025-07":159,"2025-08":5,"total":1505},"Reconocimiento de Créditos":{"2025-01":79,"2025-02":182,"2025-03":136,"2025-04":120,"2025-05":249,"2025-06":391,"2025-07":274,"2025-08":43,"total":1474},"Revocacion Certificado AP":{"2025-01":35,"2025-02":1282,"2025-03":44,"2025-04":14,"2025-05":38,"2025-06":18,"2025-07":18,"2025-08":23,"total":1472},"009. Inscripción en procesos selectivos de personal funcionario":{"2025-01":1414,"2025-02":3,"2025-03":3,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":1420},"Certificados colaboradores":{"2025-01":48,"2025-02":41,"2025-03":41,"2025-04":846,"2025-05":129,"2025-06":107,"2025-07":143,"2025-08":34,"total":1389},"Pedidos Catalogo Informatica Fundacion":{"2025-01":129,"2025-02":213,"2025-03":207,"2025-04":128,"2025-05":159,"2025-06":97,"2025-07":110,"2025-08":4,"total":1047},"firmaConvenio":{"2025-01":13,"2025-02":2,"2025-03":17,"2025-04":24,"2025-05":8,"2025-06":19,"2025-07":663,"2025-08":271,"total":1017},"Puesta a disposicion documentacion Prevencion Riesgos Laborales":{"2025-01":69,"2025-02":220,"2025-03":91,"2025-04":69,"2025-05":54,"2025-06":51,"2025-07":115,"2025-08":38,"total":707},"Evau Adaptaciones":{"2025-01":177,"2025-02":473,"2025-03":0,"2025-04":50,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":700},"Meritos Procesos Selectivos Contratacion Personal Funcionario":{"2025-01":0,"2025-02":0,"2025-03":0,"2025-04":6,"2025-05":608,"2025-06":0,"2025-07":0,"2025-08":0,"total":614},"Certificados impuestos":{"2025-01":12,"2025-02":17,"2025-03":112,"2025-04":188,"2025-05":135,"2025-06":109,"2025-07":16,"2025-08":4,"total":593},"001 Solicitud Traslados":{"2025-01":14,"2025-02":23,"2025-03":17,"2025-04":9,"2025-05":14,"2025-06":143,"2025-07":301,"2025-08":50,"total":571},"000 Certificados Campus Virtual":{"2025-01":57,"2025-02":41,"2025-03":52,"2025-04":132,"2025-05":81,"2025-06":97,"2025-07":80,"2025-08":21,"total":561},"012. Inscripción en procesos selectivos predoctorales de personal investigador":{"2025-01":0,"2025-02":6,"2025-03":18,"2025-04":436,"2025-05":0,"2025-06":1,"2025-07":1,"2025-08":0,"total":462},"Comunicaciones":{"2025-01":65,"2025-02":33,"2025-03":49,"2025-04":36,"2025-05":70,"2025-06":124,"2025-07":73,"2025-08":2,"total":452},"009. Inscripción en procesos selectivos de personal investigador":{"2025-01":416,"2025-02":0,"2025-03":24,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":440},"Proceso Selectivo Profesor Permanente Laboral":{"2025-01":21,"2025-02":103,"2025-03":2,"2025-04":33,"2025-05":31,"2025-06":215,"2025-07":31,"2025-08":2,"total":438},"Septima Convocatoria":{"2025-01":2,"2025-02":8,"2025-03":5,"2025-04":5,"2025-05":7,"2025-06":90,"2025-07":225,"2025-08":16,"total":358},"Pasaporte Empleo":{"2025-01":19,"2025-02":38,"2025-03":23,"2025-04":28,"2025-05":23,"2025-06":72,"2025-07":66,"2025-08":30,"total":299},"Concurso PDI Funcionario":{"2025-01":14,"2025-02":27,"2025-03":3,"2025-04":44,"2025-05":32,"2025-06":60,"2025-07":60,"2025-08":5,"total":245},"010. Subsanaciones en procesos selectivos de personal laboral":{"2025-01":0,"2025-02":39,"2025-03":196,"2025-04":1,"2025-05":1,"2025-06":1,"2025-07":4,"2025-08":0,"total":242},"010. Subsanaciones en procesos selectivos de personal funcionario":{"2025-01":0,"2025-02":222,"2025-03":9,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":231},"Defensor Universitario":{"2025-01":15,"2025-02":19,"2025-03":8,"2025-04":17,"2025-05":17,"2025-06":33,"2025-07":61,"2025-08":1,"total":171},"Renuncia Asociado":{"2025-01":6,"2025-02":3,"2025-03":1,"2025-04":70,"2025-05":39,"2025-06":21,"2025-07":23,"2025-08":2,"total":165},"Renuncia Profesor Ayudante Doctor":{"2025-01":6,"2025-02":2,"2025-03":8,"2025-04":44,"2025-05":42,"2025-06":25,"2025-07":10,"2025-08":4,"total":141},"Copia Autentica General":{"2025-01":16,"2025-02":19,"2025-03":17,"2025-04":7,"2025-05":21,"2025-06":19,"2025-07":25,"2025-08":7,"total":131},"010. Subsanaciones en procesos selectivos predoctorales de personal investigador":{"2025-01":0,"2025-02":0,"2025-03":3,"2025-04":0,"2025-05":0,"2025-06":111,"2025-07":0,"2025-08":0,"total":114},"Premios TFM Perspectiva Genero":{"2025-01":3,"2025-02":1,"2025-03":25,"2025-04":3,"2025-05":6,"2025-06":32,"2025-07":26,"2025-08":3,"total":99},"AccesoInformacionPublica":{"2025-01":2,"2025-02":8,"2025-03":12,"2025-04":16,"2025-05":10,"2025-06":7,"2025-07":11,"2025-08":3,"total":69},"Instancia En Papel":{"2025-01":2,"2025-02":2,"2025-03":1,"2025-04":14,"2025-05":10,"2025-06":17,"2025-07":17,"2025-08":0,"total":63},"010. Subsanaciones en procesos selectivos de personal investigador":{"2025-01":12,"2025-02":40,"2025-03":2,"2025-04":2,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":56},"Candidatura Elecciones Junta Facultad":{"2025-01":0,"2025-02":1,"2025-03":1,"2025-04":54,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":56},"firmaConvenioUsu":{"2025-01":0,"2025-02":0,"2025-03":0,"2025-04":0,"2025-05":1,"2025-06":35,"2025-07":0,"2025-08":0,"total":36},"Firma Convenios Por Lotes":{"2025-01":1,"2025-02":2,"2025-03":2,"2025-04":4,"2025-05":4,"2025-06":11,"2025-07":0,"2025-08":0,"total":24},"CERTIFICADO ACADÉMICO ESTUDIANTE VISITANTE":{"2025-01":1,"2025-02":2,"2025-03":0,"2025-04":0,"2025-05":1,"2025-06":2,"2025-07":5,"2025-08":1,"total":12},"Candidatura Elecciones Director Departamento":{"2025-01":2,"2025-02":1,"2025-03":5,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":8},"Candidatura Elecciones Decano":{"2025-01":0,"2025-02":0,"2025-03":6,"2025-04":0,"2025-05":2,"2025-06":0,"2025-07":0,"2025-08":0,"total":8},"Reclamacion Elecciones Director Departamento":{"2025-01":1,"2025-02":0,"2025-03":0,"2025-04":2,"2025-05":0,"2025-06":2,"2025-07":0,"2025-08":0,"total":5},"Candidatura Elecciones Representantes Consejo Departamento":{"2025-01":1,"2025-02":0,"2025-03":2,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":3},"Elecciones Representantes Delegacion Estudiantes":{"2025-01":0,"2025-02":2,"2025-03":0,"2025-04":0,"2025-05":1,"2025-06":0,"2025-07":0,"2025-08":0,"total":3},"Reclamacion Elecciones Representantes Consejo Departamento":{"2025-01":3,"2025-02":0,"2025-03":0,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":3},"Reclamacion Elecciones Representantes Delegacion Estudiantes":{"2025-01":0,"2025-02":1,"2025-03":0,"2025-04":1,"2025-05":0,"2025-06":0,"2025-07":0,"2025-08":0,"total":2},"Renuncia Profesor Permanente Laboral":{"2025-01":0,"2025-02":0,"2025-03":0,"2025-04":0,"2025-05":0,"2025-06":0,"2025-07":1,"2025-08":0,"total":1}};
+
+// ════════════════════════════════════════════════════
+//  ESTADO
+// ════════════════════════════════════════════════════
+let activeMonth = 'all';
+let showAll     = false;
+let searchTerm  = '';
+let sortMode    = 'total';
+let charts      = {};
+const SHOW_LIMIT = 15;
+
+// ── helpers ─────────────────────────────────────────
+const fmtN = n => Number(n).toLocaleString('es-ES');
+const sum   = arr => arr.reduce((a,b)=>a+b,0);
+
+function getVal(proc) {
+  if (activeMonth === 'all') return ALL_DATA[proc].total;
+  return ALL_DATA[proc][activeMonth] || 0;
+}
+
+function getTotal() {
+  if (activeMonth === 'all') return sum(Object.values(MONTHLY));
+  return MONTHLY[activeMonth] || 0;
+}
+
+function getMesLabel() {
+  if (activeMonth === 'all') return 'Ene–Ago 2025';
+  const i = MESES.indexOf(activeMonth);
+  return (i>=0 ? ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'][i] : activeMonth) + ' 2025';
+}
+
+// ════════════════════════════════════════════════════
+//  KPIs
+// ════════════════════════════════════════════════════
+function renderKPIs() {
+  const total = getTotal();
+  const procs = Object.keys(ALL_DATA);
+  const activos = procs.filter(p => getVal(p) > 0).length;
+  const vals   = procs.map(p => getVal(p));
+  const maxV   = Math.max(...vals);
+  const maxP   = procs[vals.indexOf(maxV)];
+  const media  = (total / (activeMonth==='all'?8:1)).toFixed(0);
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi k-blue">
+      <div class="kpi-name">Total expedientes</div>
+      <div class="kpi-num">${fmtN(total)}</div>
+      <div class="kpi-sub">${getMesLabel()}</div>
+    </div>
+    <div class="kpi k-teal">
+      <div class="kpi-name">Procedimientos activos</div>
+      <div class="kpi-num">${activos}</div>
+      <div class="kpi-sub">de 65 disponibles</div>
+    </div>
+    <div class="kpi k-amber">
+      <div class="kpi-name">${activeMonth==='all'?'Media mensual':'Total del mes'}</div>
+      <div class="kpi-num">${fmtN(media)}</div>
+      <div class="kpi-sub">${activeMonth==='all'?'expedientes/mes':'expedientes'}</div>
+    </div>
+    <div class="kpi k-rose">
+      <div class="kpi-name">Procedimiento líder</div>
+      <div class="kpi-num">${fmtN(maxV)}</div>
+      <div class="kpi-sub" title="${maxP}">${maxP.length>28?maxP.slice(0,26)+'…':maxP}</div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════
+//  MAIN CHART — total mensual
+// ════════════════════════════════════════════════════
+function buildMainChart() {
+  if (charts.main) charts.main.destroy();
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const vals = MESES.map(m => MONTHLY[m]);
+  const g = ctx.createLinearGradient(0,0,0,280);
+  g.addColorStop(0,'rgba(26,95,180,0.16)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+
+  const barColors = MESES.map(m =>
+    activeMonth==='all' || activeMonth===m ? '#1a5fb4' : 'rgba(26,95,180,0.25)'
+  );
+
+  charts.main = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: MESES_C,
+      datasets:[{
+        data: vals,
+        backgroundColor: barColors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#fff', borderColor:'#dce1eb', borderWidth:1,
+          titleColor:'#7b84a0', bodyColor:'#1b1f2e',
+          titleFont:{family:'Instrument Sans',size:11,weight:'600'},
+          bodyFont:{family:'Fraunces',size:15,weight:'500'},
+          padding:12,
+          callbacks:{
+            title: ctx => ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'][ctx[0].dataIndex]+' 2025',
+            label: c => `  ${fmtN(c.raw)} expedientes`
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#7b84a0',font:{family:'Instrument Sans',size:12}}},
+        y:{grid:{color:'#edf0f5',drawBorder:false},
+           ticks:{color:'#7b84a0',font:{family:'Instrument Sans',size:11},
+                  callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},
+           beginAtZero:true}
+      },
+      onClick:(_,els)=>{
+        if (!els.length) return;
+        const m = MESES[els[0].index];
+        if (activeMonth===m) { setMonth('all'); } else { setMonth(m); }
+      }
+    }
+  });
+  document.getElementById('mainChartDesc').textContent =
+    `Enero–Agosto 2025 · haz clic en una barra para filtrar por mes`;
+}
+
+// ════════════════════════════════════════════════════
+//  TOP 10 CHART
+// ════════════════════════════════════════════════════
+function buildTop10() {
+  if (charts.top10) charts.top10.destroy();
+  const sorted = Object.keys(ALL_DATA).sort((a,b)=>getVal(b)-getVal(a)).slice(0,10);
+  const labels = sorted.map(p => p.length>22?p.slice(0,20)+'…':p);
+  const vals   = sorted.map(p => getVal(p));
+  const ctx = document.getElementById('top10Chart').getContext('2d');
+
+  charts.top10 = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{data:vals, backgroundColor:'#17866b', borderRadius:4, borderSkipped:false}]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#fff', borderColor:'#dce1eb', borderWidth:1,
+          titleColor:'#7b84a0', bodyColor:'#1b1f2e',
+          titleFont:{family:'Instrument Sans',size:11},
+          bodyFont:{family:'Fraunces',size:13,weight:'500'},
+          padding:10,
+          callbacks:{
+            title: c => sorted[c[0].dataIndex],
+            label: c => `  ${fmtN(c.raw)} expedientes`
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'#edf0f5',drawBorder:false},ticks:{color:'#7b84a0',font:{size:10},callback:v=>v>=1000?(v/1000)+'k':v}},
+        y:{grid:{display:false},ticks:{color:'#7b84a0',font:{family:'Instrument Sans',size:10}}}
+      }
+    }
+  });
+  document.getElementById('top10Desc').textContent =
+    `Top 10 · ${getMesLabel()} · clic para detalle`;
+}
+
+// ════════════════════════════════════════════════════
+//  DISTRIBUCIÓN DOUGHNUT
+// ════════════════════════════════════════════════════
+function buildDist() {
+  if (charts.dist) charts.dist.destroy();
+  const sorted = Object.keys(ALL_DATA).sort((a,b)=>getVal(b)-getVal(a));
+  const top5   = sorted.slice(0,5);
+  const otros  = sorted.slice(5);
+  const labels = [...top5.map(p=>p.length>20?p.slice(0,18)+'…':p), 'Resto'];
+  const vals   = [...top5.map(p=>getVal(p)), sum(otros.map(p=>getVal(p)))];
+  const cols   = ['#1a5fb4','#17866b','#b45309','#9d2a4a','#5a5fcf','#bdc4d4'];
+  const ctx = document.getElementById('distChart').getContext('2d');
+
+  charts.dist = new Chart(ctx,{
+    type:'doughnut',
+    data:{labels, datasets:[{data:vals, backgroundColor:cols, borderWidth:2, borderColor:'#fff'}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{
+          position:'right',
+          labels:{color:'#7b84a0',font:{family:'Instrument Sans',size:10},
+                  boxWidth:10,boxHeight:10,padding:8,usePointStyle:true,pointStyle:'circle'}
+        },
+        tooltip:{
+          backgroundColor:'#fff', borderColor:'#dce1eb', borderWidth:1,
+          titleColor:'#7b84a0', bodyColor:'#1b1f2e',
+          titleFont:{family:'Instrument Sans',size:11},
+          bodyFont:{family:'Fraunces',size:13,weight:'500'},
+          padding:10,
+          callbacks:{label:c=>`  ${fmtN(c.raw)} (${((c.raw/getTotal())*100).toFixed(1)}%)`}
+        }
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  TABLA
+// ════════════════════════════════════════════════════
+function renderTable() {
+  const grandTotal = sum(Object.values(MONTHLY));
+  let procs = Object.keys(ALL_DATA);
+
+  // filter by search
+  if (searchTerm) {
+    procs = procs.filter(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
+  }
+
+  // sort
+  if (sortMode==='total') {
+    procs.sort((a,b)=>ALL_DATA[b].total - ALL_DATA[a].total);
+  } else if (sortMode==='alpha') {
+    procs.sort((a,b)=>a.localeCompare(b,'es'));
+  } else {
+    procs.sort((a,b)=>getVal(b)-getVal(a));
+  }
+
+  const visible = showAll ? procs : procs.slice(0, SHOW_LIMIT);
+  const maxTotal = ALL_DATA[Object.keys(ALL_DATA).sort((a,b)=>ALL_DATA[b].total-ALL_DATA[a].total)[0]].total;
+
+  document.getElementById('tblPeriod').textContent = getMesLabel();
+  document.getElementById('tblCount').textContent =
+    `${procs.length} procedimiento${procs.length!==1?'s':''} · ${fmtN(grandTotal)} expedientes totales`;
+
+  const btn = document.getElementById('showAllBtn');
+  btn.textContent = showAll ? `Mostrar menos` : `Mostrar todos (${procs.length})`;
+  btn.classList.toggle('active', showAll);
+
+  document.getElementById('tblBody').innerHTML = visible.map((proc, idx) => {
+    const d    = ALL_DATA[proc];
+    const tot  = d.total;
+    const pct  = ((tot/grandTotal)*100).toFixed(1);
+    const barW = Math.round((tot/maxTotal)*100);
+    const mVals = MESES.map(m => `<td class="month-cell">${d[m]||0}</td>`).join('');
+    const hl   = activeMonth!=='all' ? `style="background:#f0f6ff"` : '';
+
+    return `<tr ${hl}>
+      <td class="td-rank">${idx+1}</td>
+      <td class="td-proc" title="${proc}">${proc.length>40?proc.slice(0,38)+'…':proc}</td>
+      ${mVals}
+      <td class="td-num">${fmtN(tot)}</td>
+      <td class="td-bar-cell">
+        <div class="td-bar-wrap"><div class="td-bar" style="width:${barW}%"></div></div>
+      </td>
+      <td class="td-pct">${pct}%</td>
+    </tr>`;
+  }).join('');
+
+  if (!showAll && procs.length > SHOW_LIMIT) {
+    document.getElementById('tblBody').innerHTML +=
+      `<tr><td colspan="13" style="text-align:center;padding:12px;color:var(--muted);font-size:12px">
+        … ${procs.length - SHOW_LIMIT} procedimientos más. Usa "Mostrar todos" para verlos.
+      </td></tr>`;
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  SET MONTH (filtro global)
+// ════════════════════════════════════════════════════
+function setMonth(m) {
+  activeMonth = m;
+  // update tabs
+  document.querySelectorAll('#globalMonthTabs .m-tab').forEach(btn => {
+    btn.classList.toggle('active',
+      (m==='all' && btn.dataset.m==='all') || btn.dataset.m===m
+    );
+  });
+  renderKPIs();
+  buildMainChart();
+  buildTop10();
+  buildDist();
+  renderTable();
+}
+
+// ════════════════════════════════════════════════════
+//  EVENTOS
+// ════════════════════════════════════════════════════
+document.getElementById('globalMonthTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.m-tab');
+  if (!btn) return;
+  setMonth(btn.dataset.m);
+});
+
+document.getElementById('searchBox').addEventListener('input', e=>{
+  searchTerm = e.target.value;
+  renderTable();
+});
+
+document.getElementById('sortSel').addEventListener('change', e=>{
+  sortMode = e.target.value;
+  renderTable();
+});
+
+document.getElementById('showAllBtn').addEventListener('click', ()=>{
+  showAll = !showAll;
+  renderTable();
+});
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+renderKPIs();
+buildMainChart();
+buildTop10();
+buildDist();
+renderTable();
+</script>
+</body>
+</html>
